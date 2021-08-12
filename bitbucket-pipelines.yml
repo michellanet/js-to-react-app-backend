@@ -1,0 +1,56 @@
+# This is a sample build configuration for JavaScript.
+# Check our guides at https://confluence.atlassian.com/x/14UWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: node:12.17.0
+
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Test
+          caches:
+            - node
+          script:
+            - npm install
+            - npm test
+      - step:
+          name: Build & Deploy
+          script:
+            - apt-get update
+            - apt-get install -y zip
+            - zip -r app.zip .
+            - pipe: atlassian/aws-elasticbeanstalk-deploy:0.5.0
+              variables:
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                APPLICATION_NAME: "talent"
+                ENVIRONMENT_NAME: "talent-test-2"
+                S3_BUCKET: "talent-test-deploy"
+                ZIP_FILE: "app.zip"
+
+    production:
+      - step:
+          name: Test
+          caches:
+            - node
+          script:
+            - npm install
+            - npm test
+      - step:
+          name: Build & Deploy
+          script:
+            - apt-get update
+            - apt-get install -y zip
+            - zip -r app.zip .
+            - pipe: atlassian/aws-elasticbeanstalk-deploy:0.5.0
+              variables:
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                APPLICATION_NAME: "talent"
+                ENVIRONMENT_NAME: "talent-production"
+                S3_BUCKET: "talent-prod-deploy"
+                ZIP_FILE: "app.zip"
